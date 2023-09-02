@@ -3,7 +3,7 @@ from Crypto.Cipher import AES
 
 def findDupes(ciphers):
     blocks = [ciphers[i:i + AES.block_size] for i in range(0, len(ciphers), AES.block_size)]
-    dupes = len(ciphers) - len(set(blocks))
+    dupes = len(blocks) - len(set(blocks))
     return dupes
 
 def mostDupesIndex(ciphers):
