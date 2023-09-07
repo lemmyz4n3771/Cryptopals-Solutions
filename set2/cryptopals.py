@@ -1,29 +1,6 @@
 from Crypto.Cipher import AES
-from os import urandom
 
-class ECBOracle:
-    def __init__(self):
-        self._key = urandom(AES.key_size[0])
-    def encrypt(self, email):
-        encoded = encodeJson(profile_for(email))
-        asBytes = encoded.encode()
-        return aesECBEncrypt(asBytes, self._key)
-    def decrypt(self, ciphertext):
-        return aesECBDecrypt(ciphertext, self._key)
 
-def profile_for(email: str):
-    email = email.replace('&', '').replace('=','')
-    json = {}
-    json["email"] = email
-    json["uid"] = 10
-    json["role"] = "user"
-    return json
-
-def encodeJson(json: dict):
-    encoded = ""
-    for e in json.items():
-        encoded += e[0] + '=' + str(json[e[0]]) + '&'
-    return encoded[:-1]
 
 def aesECBDecrypt(data, key):
     cipher = AES.new(key, AES.MODE_ECB)
@@ -32,6 +9,39 @@ def aesECBDecrypt(data, key):
 def aesECBEncrypt(data, key):
     cipher = AES.new(key, AES.MODE_ECB)
     return cipher.encrypt(pkcs7Pad(data, AES.block_size))
+
+def aesCBCEncrypt(data, key, iv):
+    #  In CBC mode, each ciphertext block is added to the next plaintext block before the next call to the cipher core.
+    #  The first plaintext block, which has no associated previous ciphertext block, is added to a "fake 0th ciphertext
+    #  block" called the initialization vector, or IV. 
+    #  Implement CBC mode by hand by taking the ECB function you wrote earlier, making it encrypt instead of decrypt
+    ciphertext = b''
+    prev = iv
+
+    for b in range(0, len(data), AES.block_size):
+        padded = pkcs7Pad(data[b:b + AES.block_size], AES.block_size)
+        xored = xor(padded, prev)
+        encrypted = aesECBEncrypt(xored, key)
+        ciphertext += encrypted
+        prev = encrypted
+    
+    return ciphertext
+
+def aesCBCDecrypt(data, key, iv):
+    plaintext = b''
+    prev = iv
+
+    for b in range(0, len(data), AES.block_size):
+        block = data[b:b + AES.block_size]
+        decrypted = aesECBDecrypt(block, key)
+        xored = xor(prev, decrypted)
+        plaintext += xored
+        prev = block
+    
+    return pkcs7Unpad(plaintext)
+
+def xor(data1, data2):
+    return bytes([b1 ^ b2 for b1, b2 in zip(data1, data2)])
 
 def pkcs7Pad(data, blockSize):
     if len(data) == blockSize:
