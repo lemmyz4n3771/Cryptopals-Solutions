@@ -32,13 +32,12 @@ class MT19937:
         self.index += 1
         return self.wMask & y
 
-    @classmethod
-    def seed_mt(cls, seed: int) -> list:
+    def seed_mt(self, seed: int) -> list:
         MT = [seed]
         # for i from 1 to (n - 1) { // loop over each element
-        for i in range(1, cls.n):
+        for i in range(1, self.n):
             # MT[i] := lowest w bits of (f * (MT[i-1] xor (MT[i-1] >> (w-2))) + i)
-            MT.append(cls.wMask & (cls.f * (MT[i-1] ^ (MT[i-1] >> (cls.w - 2))) + i))
+            MT.append(self.wMask & (self.f * (MT[i-1] ^ (MT[i-1] >> (self.w - 2))) + i))
         return MT
     
     def twist(self): 
