@@ -15,9 +15,29 @@ class MT19937:
     UPPER_MASK = wMask & ~LOWER_MASK
 
     # // Alternatively, seed with constant value; 5489 is used in reference C code
-    def __init__(self, seed: int = 5489):
+    def __init__(self, seed: int = 5489, iterations : int = None):
         self.MT = self.seed_mt(seed)
         self.index = self.n
+        self.iterations = iterations
+    
+    def __iter__(self):
+        index = 0
+        while True:
+            index += 1
+            if self.iterations is not None and self.iterations < index:
+                break
+            if self.index == self.n:
+                self.twist()
+            
+            y = self.MT[self.index]
+            y ^= (y >> self.u) & self.d
+            y ^= (y << self.s) & self.b
+            y ^= (y << self.t) & self.c
+            y ^= (y >> self.l)
+
+            self.index += 1
+            yield self.wMask & y
+
 
     def extract_number(self):
         if self.index >= self.n:
@@ -56,9 +76,17 @@ class MT19937:
         self.index = 0
 
 def main():
-    for i in range(50):
-        print(MT19937(i).extract_number())
+#    for i in range(50):
+#        print(MT19937(i).extract_number())
     
+#    for i in MT19937(iterations=5):
+#        print(i)
+    rng = iter(MT19937(seed=10000))
+    print(next(rng))
+    print(next(rng))
+    print(next(rng))
+    print(next(rng))
+
     
 
 if __name__ == "__main__":
