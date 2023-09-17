@@ -5,7 +5,7 @@ class MT19937:
     a = 0x9908B0DF
     (u, d) = (11, 0xFFFFFFFF)
     (s,b) = (7, 0x9D2C5680)
-    (t,c,) = (15, 0xEFC60000)
+    (t,c) = (15, 0xEFC60000)
     l = 18
     f = 1812433253
     # const int lower_mask = (1 << r) - 1 // That is, the binary number of r 1's
