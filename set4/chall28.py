@@ -3,25 +3,27 @@ from Crypto.Random import get_random_bytes
 
 # For pseudocode: https://en.wikipedia.org/wiki/SHA-1
 
-
 def sha1(message: bytes, h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 = 0x10325476, h4 = 0xC3D2E1F0, setLength: int =None):
     # ml = message length in bits (always a multiple of the number of bits in a character)
-    if setLength == None:
-        ml = 8
+    if setLength is None:
+        ml = len(message) * 8
     else:
         ml = setLength * 8
-    
+
     # Pre-processing:
     # append the bit '1' to the message e.g. by adding 0x80 if message length is a multiple of 8 bits.
     message += bytes([0x80])
 
     # append 0 ≤ k < 512 bits '0', such that the resulting message length in bits
     # is congruent to −64 ≡ 448 (mod 512)
-    while (len(message) * 8) % 512 != 448:
-        message += bytes([0])
+    padLength = (448 // 8) - (len(message) % (512 // 8))
+    padLength = (512 // 8) + padLength if padLength < 0 else padLength 
+    message += bytes(padLength)
+
     # append ml, the original message length in bits, as a 64-bit big-endian integer. 
     # Thus, the total length is a multiple of 512 bits.
-    message += ml.to_bytes(64 // 8, byteorder="big")
+    message +=  ml.to_bytes(64 // 8, byteorder='big')
+
 
     if len(message) % 64 != 0:
         raise Exception("Message not a multiple of 512 bits")
@@ -51,22 +53,22 @@ def sha1(message: bytes, h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 =
         # for i from 0 to 79
         for i in range(80):
             # if 0 ≤ i ≤ 19 then
-            if i >= 0 and i <= 19:
+            if 0 <= i <= 19:
                 # f = (b and c) or ((not b) and d)
                 f = (b & c) | ((~b) & d)
                 k = 0x5A827999
             # else if 20 ≤ i ≤ 39
-            elif i >= 20 and i <= 39:
+            elif 20 <= i <= 39:
                 # f = b xor c xor d
                 f = b ^ c ^ d
                 k = 0x6ED9EBA1
             # else if 40 ≤ i ≤ 59
-            elif i >= 40 and i <= 59:
+            elif 40 <= i <= 59:
                 # f = (b and c) or (b and d) or (c and d) 
                 f = ( b & c) | ( b & d ) | ( c & d)
                 k = 0x8F1BBCDC
             # else if 60 ≤ i ≤ 79
-            elif i >= 60 and i <= 79:
+            else:
                 # f = b xor c xor d
                 f = b ^ c ^ d
                 k = 0xCA62C1D6
