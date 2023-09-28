@@ -105,6 +105,27 @@ def sha1(message: bytes, h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 =
 def sha1MAC(message: bytes, key: bytes):
     return sha1(key + message)
 
+# HMAC pseudocode: https://en.wikipedia.org/wiki/HMAC
+# sha1 hmac implememtation
+def hmac(key: bytes, message: bytes, hash_func: callable = sha1, blocksize: int = 64):
+    # // Compute the block sized key
+    key = computeBlockSizedKey(key)
+
+    # o_key_pad ← block_sized_key xor [0x5c blockSize]   // Outer padded key
+    o_key_pad = xorAll((key, bytes([0x5c] * blocksize)))
+    # i_key_pad ← block_sized_key xor [0x36 blockSize]   // Inner padded key
+    i_key_pad = xorAll((key, bytes([0x36] * blocksize)))
+
+    # return  hash(o_key_pad ∥ hash(i_key_pad ∥ message))
+    return hash_func(o_key_pad + hash_func(i_key_pad + message))
+
+def computeBlockSizedKey(key: bytes, blocksize: int = 64):
+    if len(key) > blocksize:
+        key = sha1(key)
+    if len(key) < 64:
+        key += bytes([0] * (blocksize - len(key)))
+    return key
+
 def leftRotate(val: int, shiftLen: int):
     return ((val << shiftLen) & 0xffffffff) | (val >> (32 - shiftLen))
 
